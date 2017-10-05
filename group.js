@@ -1,8 +1,19 @@
-function Group (world, name, num, color) {
+const getRandomColor = () => {
+  var letters = '012345'.split('');
+  var color = '#';        
+  color += letters[Math.round(Math.random() * 5)];
+  letters = '0123456789ABCDEF'.split('');
+  for (var i = 0; i < 5; i++) {
+      color += letters[Math.round(Math.random() * 15)];
+  }
+  return color;
+}  
+
+function Group(world, name, num) {
   this.name = name
   this.num = num
   this.world = world
-  this.color = color
+  this.color = getRandomColor()
   this.creatures = []
   this.init()
 }
@@ -33,8 +44,7 @@ Group.prototype = {
     }
   },
   update: function () {
-    // Fitness All Creatures
-    var totalFit = 0
+    var info = 0
     this.creatures.forEach(function (creature, i, array) {
       // move
       var input = []
@@ -49,15 +59,24 @@ Group.prototype = {
       // learn
       var learningRate = 0.085
       var target = [targetX(creature, array), targetY(creature, array), targetAngle(creature, array)]
-      creature.network.propagate(learningRate, target)
+      //creature.network.propagate(learningRate, target)
 
+      var t = new Trainer(creature.network)
+      train = t.train([{
+        input: input,
+        output: target
+      }], {
+          rate: learningRate,
+          iterations: 1,
+          error: .95,
+          cost: Trainer.cost.MSE
+        })
+
+        info += train.error
       // draw
       creature.draw()
-
-      // Helps with overall Fitness
-      totalFit += new Vector(output[0], output[1]).dist(new Vector(target[0], target[1]))
     })
-    return totalFit
+    return info / this.creatures.length
   },
   fitness: function () {
     return 0

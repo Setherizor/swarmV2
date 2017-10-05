@@ -3,14 +3,15 @@ function World (canvas, ctx) {
   this.height = canvas.height
   var size = 10
   this.groups = {
-    GroupA: new Group(this, 'GroupA', size, '#ef0255'),
-    GroupB: new Group(this, 'GroupB', size, '#4286f4'),
-    GroupC: new Group(this, 'GroupC', size, '#42f477'),
-    GroupD: new Group(this, 'GroupD', size, '#d142f4'),
-    GroupE: new Group(this, 'GroupE', size, '#8f00ef')
+    GroupA: new Group(this, 'GroupA', size),
+    GroupB: new Group(this, 'GroupB', size),
+    GroupC: new Group(this, 'GroupC', size),
+    GroupD: new Group(this, 'GroupD', size),
+    GroupE: new Group(this, 'GroupE', size),
+    GroupF: new Group(this, 'GroupA', size)
   }
   this.context = ctx
-  this.fps = 160
+  this.fps = 150
   this.loops = 0
 }
 
@@ -41,17 +42,11 @@ var loop = function () {
   ctx.fillRect(0, 0, world.width, world.height)
   ctx.globalAlpha = 1
 
-  var groupFitness = world.update()
-
-  // Logs every 10 generations
-  var totInhabitants = 0
-  for (group in world.groups) {
-    totInhabitants += world.groups[group].num
+  var error = world.update()
+  if (world.loops % 20 === 0) {
+    console.log(error)
   }
 
-  if (world.loops % 10 === 0) {
-    console.log((groupFitness * 1000) / (totInhabitants))
-  }
   setTimeout(loop, 1000 / world.fps)
 }
 

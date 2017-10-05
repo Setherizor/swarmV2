@@ -3,10 +3,10 @@ function Creature (world, x, y, group, color) {
   this.group = group
   var nodes = (this.group.num * 4)
   this.network = new Architect.Perceptron(nodes, nodes / 2 + 5, 3)
-  this.mass = 0.4
+  this.mass = 0.6
   this.maxspeed = 2
   this.maxforce = 0.2
-  this.lookRange = this.mass * 200
+  //this.lookRange = this.mass * 200
   this.length = this.mass * 10
   this.base = this.length * 0.5
   this.HALF_PI = Math.PI * 0.5
@@ -74,13 +74,14 @@ Creature.prototype = {
 
   boundaries: function () {
     var buffer = 15
-    if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * 2, 0)) }
+    var force = 2;
+    if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * force, 0)) }
 
-    if (this.location.x > this.world.width - buffer) { this.applyForce(new Vector(-this.maxforce * 2, 0)) }
+    if (this.location.x > this.world.width - buffer) { this.applyForce(new Vector(-this.maxforce * force, 0)) }
 
-    if (this.location.y < buffer) { this.applyForce(new Vector(0, this.maxforce * 2)) }
+    if (this.location.y < buffer) { this.applyForce(new Vector(0, this.maxforce * force)) }
 
-    if (this.location.y > this.world.height - buffer) { this.applyForce(new Vector(0, -this.maxforce * 2)) }
+    if (this.location.y > this.world.height - buffer) { this.applyForce(new Vector(0, -this.maxforce * force)) }
   },
 
   seek: function (target) {
