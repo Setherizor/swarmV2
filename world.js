@@ -1,5 +1,5 @@
 class World {
-  constructor(canvas, ctx) {
+  constructor (canvas, ctx) {
     this.fps = 150
     this.width = canvas.width
     this.height = canvas.height
@@ -7,7 +7,7 @@ class World {
     this.loops = 0
     var size = 10
     this.things = {
-      //apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
+      // apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
     }
     this.groups = {
       GroupA: new Group(this, 'GroupA', size),
@@ -19,11 +19,11 @@ class World {
     }
   }
 
-  populate() {
+  populate () {
     this.GroupA = []
     this.GroupB = []
   }
-  update() {
+  update () {
     var groupFitness = 0
     for (var group in this.groups) {
       groupFitness += this.groups[group].update()
@@ -31,10 +31,10 @@ class World {
     for (var key in this.things) {
       this.things[key].update()
     }
-    
+
     return groupFitness
   }
-  loop() {
+  loop () {
     // For each creature train it to predict average target and angle based on input of every other creature's pos and velocity
     world.loops++
     const ctx = world.context
@@ -43,32 +43,12 @@ class World {
     ctx.fillStyle = '#f7f3d7'
     ctx.fillRect(0, 0, world.width, world.height)
     ctx.globalAlpha = 1
-  
+
     var error = world.update()
     if (world.loops % 20 === 0) {
       console.log(error)
     }
-  
+
     setTimeout(world.loop, 1000 / world.fps)
   }
 }
-
-
-// function blastoff() {
-//   var adj = 4.0001
-//   canvas.width = window.innerWidth - adj
-//   canvas.height = window.innerHeight - adj
-
-//   const resizeCanvas = () => {
-//     canvas.width = world.width = window.innerWidth - adj
-//     canvas.height = world.height = window.innerHeight - adj
-//   }
-//   // resize the canvas to fill browser window dynamically
-//   window.addEventListener('resize', resizeCanvas, false)
-
-//   // blastoff
-//   world = new World(canvas, ctx)
-//   world.loop()
-// }
-
-// blastoff()
