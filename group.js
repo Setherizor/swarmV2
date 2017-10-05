@@ -1,49 +1,46 @@
 const getRandomColor = () => {
   var letters = '012345'.split('');
-  var color = '#';        
+  var color = '#';
   color += letters[Math.round(Math.random() * 5)];
   letters = '0123456789ABCDEF'.split('');
   for (var i = 0; i < 5; i++) {
-      color += letters[Math.round(Math.random() * 15)];
+    color += letters[Math.round(Math.random() * 15)];
   }
   return color;
-}  
-
-function Group(world, name, num) {
-  this.name = name
-  this.num = num
-  this.world = world
-  this.color = getRandomColor()
-  this.creatures = []
-  this.init()
 }
 
-var targetX = function (creature, creatures) {
-  var cohesion = creature.cohesion(creatures)
-  return cohesion.x / world.width
-}
+class Group {
+  constructor(world, name, num) {
+    this.name = name
+    this.num = num
+    this.world = world
+    this.color = getRandomColor()
+    this.creatures = []
+    this.init()
 
-var targetY = function (creature, creatures) {
-  var cohesion = creature.cohesion(creatures)
-  return cohesion.y / world.height
-}
+  }
 
-var targetAngle = function (creature, creatures) {
-  var alignment = creature.align(creatures)
-  return (alignment.angle() + Math.PI) / (Math.PI * 2)
-}
-
-Group.prototype = {
-
-  init: function () {
+  init() {
     for (var i = 0; i < this.num; i++) {
       var x = Math.random() * this.world.width
       var y = Math.random() * this.world.height
       this.creatures[i] = new Creature(this.world, x, y, this, this.color)
       this.creatures[i].velocity.random()
     }
-  },
-  update: function () {
+  }
+  targetX(creature) {
+    var cohesion = creature.cohesion(this.creatures)
+    return cohesion.x / world.width
+  }
+  targetY(creature) {
+    var cohesion = creature.cohesion(this.creatures)
+    return cohesion.y / world.height
+  }
+  targetAngle(creature) {
+    var alignment = creature.align(this.creatures)
+    return (alignment.angle() + Math.PI) / (Math.PI * 2)
+  }
+  update() {
     var info = 0
     this.creatures.forEach(function (creature, i, array) {
       // move
@@ -55,14 +52,15 @@ Group.prototype = {
         input.push(array[i].velocity.y)
       }
       var output = creature.network.activate(input)
+      
       creature.moveTo(output, array)
+      
       // learn
       var learningRate = 0.085
-      var target = [targetX(creature, array), targetY(creature, array), targetAngle(creature, array)]
+      var target = [this.targetX(creature), this.targetY(creature), this.targetAngle(creature)]
+      
       //creature.network.propagate(learningRate, target)
-
-      var t = new Trainer(creature.network)
-      train = t.train([{
+      info += new Trainer(creature.network).train([{
         input: input,
         output: target
       }], {
@@ -70,15 +68,11 @@ Group.prototype = {
           iterations: 1,
           error: .95,
           cost: Trainer.cost.MSE
-        })
-
-        info += train.error
-      // draw
+        }).error
+      
       creature.draw()
-    })
-    return info / this.creatures.length
-  },
-  fitness: function () {
-    return 0
+    }, this)
+    // Avg Error
+    return (info / this.creatures.length)
   }
 }
