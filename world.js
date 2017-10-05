@@ -6,6 +6,9 @@ class World {
     this.context = ctx
     this.loops = 0
     var size = 10
+    this.things = {
+      //apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
+    }
     this.groups = {
       GroupA: new Group(this, 'GroupA', size),
       GroupB: new Group(this, 'GroupB', size),
@@ -25,6 +28,10 @@ class World {
     for (var group in this.groups) {
       groupFitness += this.groups[group].update()
     }
+    for (var key in this.things) {
+      this.things[key].update()
+    }
+    
     return groupFitness
   }
   loop() {

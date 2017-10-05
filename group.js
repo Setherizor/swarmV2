@@ -17,7 +17,6 @@ class Group {
     this.color = getRandomColor()
     this.creatures = []
     this.init()
-
   }
 
   init() {
@@ -70,7 +69,7 @@ class Group {
           cost: Trainer.cost.MSE
         }).error
       
-      creature.draw()
+      creature.update()
     }, this)
     // Avg Error
     return (info / this.creatures.length)

@@ -1,8 +1,10 @@
 class Entity {
-  constructor(mass, x, y, maxspeed, maxforce, color) {
-    this.mass = 0.6
-    this.maxspeed = 2
-    this.maxforce = 0.2
+  constructor(world, mass, x, y, maxspeed, maxforce, color) {
+    this.world = world
+    this.mass = mass
+    this.square = true
+    this.maxspeed = maxspeed
+    this.maxforce = maxforce
     this.lookRange = this.mass * 200
     this.length = this.mass * 10
     this.base = this.length * 0.5
@@ -15,27 +17,58 @@ class Entity {
   }
 
   draw() {
-    this.update()
-
     var ctx = this.world.context
     var angle = this.velocity.angle()
 
-    var x1 = this.location.x + Math.cos(angle) * this.base
-    var y1 = this.location.y + Math.sin(angle) * this.base
+    var x1
+    var y1
+    var x2
+    var y2
+    var x3
+    var y3
+    var x4
+    var y4
+    var pts = []
+    if (this.square) {
+      var inc = 10
+      x1 = this.location.x
+      y1 = this.location.y
+      x2 = this.location.x
+      y2 = this.location.y + inc
+      x3 = this.location.x + inc
+      y3 = this.location.y + inc
+      x4 = this.location.x + inc
+      y4 = this.location.y
+      pts = [
+        { x: x1, y: y1}, 
+        { x: x2, y: y2},
+        { x: x3, y: y3},
+        { x: x4, y: y4},
+      ]
+    } else {
+      x1 = this.location.x + Math.cos(angle) * this.base
+      y1 = this.location.y + Math.sin(angle) * this.base
 
-    var x2 = this.location.x + Math.cos(angle + this.HALF_PI) * this.base
-    var y2 = this.location.y + Math.sin(angle + this.HALF_PI) * this.base
+      x2 = this.location.x + Math.cos(angle + this.HALF_PI) * this.base
+      y2 = this.location.y + Math.sin(angle + this.HALF_PI) * this.base
 
-    var x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
-    var y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
+      x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
+      y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
+      pts = [
+        { x: x1, y: y1}, 
+        { x: x2, y: y2},
+        { x: x3, y: y3}
+      ]
+    }
 
     ctx.lineWidth = 2
     ctx.fillStyle = this.color
     ctx.strokeStyle = this.color
     ctx.beginPath()
     ctx.moveTo(x1, y1)
-    ctx.lineTo(x2, y2)
-    ctx.lineTo(x3, y3)
+    pts.forEach((pt) => {
+      ctx.lineTo(pt.x, pt.y)
+    })
     ctx.stroke()
     ctx.fill()
   }
@@ -43,9 +76,10 @@ class Entity {
     this.boundaries()
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
-    if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
+
     this.location.add(this.velocity)
     this.acceleration.mul(0)
+    this.draw()
   }
 
   applyForce(force) {
@@ -67,15 +101,19 @@ class Entity {
 
 class Creature extends Entity {
   constructor(world, x, y, group, color) {
-    var mass = 0.6
+    var mass = .6
     var maxspeed = 2
     var maxforce = 0.2
-    super(mass, x, y, maxspeed, maxforce, color)
-
-    this.world = world
+    super(world, mass, x, y, maxspeed, maxforce, color)
+    this.square = false
     this.group = group
     var nodes = (this.group.num * 4)
     this.network = new Architect.Perceptron(nodes, nodes / 2 + 5, 3)
+  }
+
+  update() {
+    if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
+    super.update()
   }
 
   moveTo(networkOutput, creatures) {
