@@ -20,25 +20,17 @@ class Entity {
     var ctx = this.world.context
     var angle = this.velocity.angle()
 
-    var x1
-    var y1
-    var x2
-    var y2
-    var x3
-    var y3
-    var x4
-    var y4
     var pts = []
     if (this.square) {
       var inc = 10
-      x1 = this.location.x
-      y1 = this.location.y
-      x2 = this.location.x
-      y2 = this.location.y + inc
-      x3 = this.location.x + inc
-      y3 = this.location.y + inc
-      x4 = this.location.x + inc
-      y4 = this.location.y
+      var x1 = this.location.x
+      var y1 = this.location.y
+      var x2 = this.location.x
+      var y2 = this.location.y + inc
+      var x3 = this.location.x + inc
+      var y3 = this.location.y + inc
+      var x4 = this.location.x + inc
+      var y4 = this.location.y
       pts = [
         { x: x1, y: y1}, 
         { x: x2, y: y2},
@@ -46,14 +38,14 @@ class Entity {
         { x: x4, y: y4},
       ]
     } else {
-      x1 = this.location.x + Math.cos(angle) * this.base
-      y1 = this.location.y + Math.sin(angle) * this.base
+      var x1 = this.location.x + Math.cos(angle) * this.base
+      var y1 = this.location.y + Math.sin(angle) * this.base
 
-      x2 = this.location.x + Math.cos(angle + this.HALF_PI) * this.base
-      y2 = this.location.y + Math.sin(angle + this.HALF_PI) * this.base
+      var x2 = this.location.x + Math.cos(angle + this.HALF_PI) * this.base
+      var y2 = this.location.y + Math.sin(angle + this.HALF_PI) * this.base
 
-      x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
-      y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
+      var x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
+      var y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
       pts = [
         { x: x1, y: y1}, 
         { x: x2, y: y2},
