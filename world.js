@@ -1,5 +1,5 @@
 class World {
-  constructor(canvas, ctx) {
+  constructor (canvas, ctx) {
     this.fps = 60
     this.width = canvas.width
     this.height = canvas.height
@@ -25,18 +25,18 @@ class World {
   }
 
   // Calls update function for all groups and things
-  update() {
-    const groupFitness = this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
-
+  update () {
     const forEachUpdate = (x) => { x.forEach((a) => { a.update() }) }
     forEachUpdate(this.groups)
     forEachUpdate(this.things)
+
+    const groupFitness = this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
 
     return groupFitness
   }
 
   // Recursively calls function to enable dynamic FPS
-  loop() {
+  loop () {
     world.loops++
     // Fade effect
     world.context.globalAlpha = 0.25

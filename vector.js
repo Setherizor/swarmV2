@@ -104,7 +104,7 @@ class Vector {
         sum.add(v)
       }
     })
-    sum.div(locations.length)  
+    sum.div(locations.length)
     return sum
   }
 }

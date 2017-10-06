@@ -1,5 +1,5 @@
 class Entity {
-  constructor(world, mass, x, y, maxspeed, maxforce, color) {
+  constructor (world, mass, x, y, maxspeed, maxforce, color) {
     this.world = world
     this.mass = mass
     this.square = true
@@ -16,7 +16,7 @@ class Entity {
     this.color = color
   }
 
-  draw() {
+  draw () {
     var ctx = this.world.context
     var angle = this.velocity.angle()
 
@@ -64,7 +64,7 @@ class Entity {
     ctx.stroke()
     ctx.fill()
   }
-  update() {
+  update () {
     this.boundaries()
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
@@ -74,11 +74,11 @@ class Entity {
     this.draw()
   }
 
-  applyForce(force) {
+  applyForce (force) {
     this.acceleration.add(force)
   }
 
-  boundaries() {
+  boundaries () {
     var buffer = 15
     var force = 4
     if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * force, 0)) }
@@ -92,7 +92,7 @@ class Entity {
 }
 
 class Creature extends Entity {
-  constructor(world, x, y, group, color) {
+  constructor (world, x, y, group, color) {
     var mass = 0.6
     var maxspeed = 2
     var maxforce = 0.2
@@ -103,19 +103,19 @@ class Creature extends Entity {
     this.network = new Architect.Perceptron(nodes, nodes / 2 + 5, 3)
   }
 
-  update() {
+  update () {
     if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
     super.update()
   }
 
-  moveTo(networkOutput, creatures) {
+  moveTo (networkOutput, creatures) {
     var target = new Vector(networkOutput[0] * this.world.width, networkOutput[1] * this.world.height)
     var angle = (networkOutput[2] * this.TWO_PI) - Math.PI
-  
+
     var separation = this.separate(creatures)
     var alignment = this.align(creatures).setAngle(angle)
     var cohesion = this.seek(target)
-    
+
     var forces = [separation, alignment, cohesion]
     var force = new Vector(0, 0)
     forces.forEach((f) => { force.add(f) })
@@ -123,7 +123,7 @@ class Creature extends Entity {
   }
 
   // THIS IS CAUSING TROUBLE
-  seek(target) {
+  seek (target) {
     var seek = target.copy().sub(this.location)
     seek.normalize()
     seek.mul(this.maxspeed)
@@ -131,9 +131,9 @@ class Creature extends Entity {
     seek.limit(world.seekWeight)
 
     return seek
-  } 
+  }
 
-  separate(creatures) {
+  separate (creatures) {
     var sum = new Vector(0, 0)
 
     creatures.forEach((x) => {
@@ -145,7 +145,7 @@ class Creature extends Entity {
         sum.add(diff)
       }
     }, this)
- 
+
     sum.div(creatures.length)
 
     sum.normalize()
@@ -158,7 +158,7 @@ class Creature extends Entity {
   }
 
   // Averages, and makes average velocity normal
-  align(neighboors) {
+  align (neighboors) {
     var velocities = neighboors.map((c) => { return c.velocity })
     var avgVelocity = new Vector().avg(velocities, this)
     avgVelocity.normalize()
@@ -168,7 +168,7 @@ class Creature extends Entity {
   }
 
   // Averages Location of neighbors
-  cohesion(creatures) {
+  cohesion (creatures) {
     var locations = creatures.map((c) => { return c.location })
     return new Vector().avg(locations, this)
   }
