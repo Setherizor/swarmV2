@@ -44,15 +44,12 @@ class Group {
       const startTime = performance.now()
 
       // the angle decides the general direction of the swarms
-      var output = [0.5, 0.5, Math.random()]
-      //creature.network.activate(input)
+      var output = creature.network.activate(input)
 
       const duration = performance.now() - startTime
-      if (duration > 50) {
+      if (duration > 100) {
         console.log(`we took took ${duration}ms`)
-        debugger
       }
-      
 
       // REGULAR STUFF
       creature.moveTo(output, array)
@@ -63,18 +60,8 @@ class Group {
       var target = [targetXY.x, targetXY.y, this.targetAngle(creature)]
       // var target = [200 / world.width, 200 / world.height, 40]
 
+      // Being trained to predict the average location, and average aim/velocity
       creature.network.propagate(learningRate, target)
-
-      // info += new Trainer(creature.network).train([{
-      //   input: input,
-      //   output: target
-      // }], {
-      //   rate: learningRate,
-      //   iterations: 1,
-      //   error: 0.95,
-      //   cost: Trainer.cost.MSE
-      // }).error
-
       creature.update()
     }, this)
     // Avg Error

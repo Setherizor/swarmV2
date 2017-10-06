@@ -111,7 +111,7 @@ class Creature extends Entity {
   moveTo(networkOutput, creatures) {
     var target = new Vector(networkOutput[0] * this.world.width, networkOutput[1] * this.world.height)
     var angle = (networkOutput[2] * this.TWO_PI) - Math.PI
-
+  
     var separation = this.separate(creatures)
     var alignment = this.align(creatures).setAngle(angle)
     var cohesion = this.seek(target)
@@ -122,14 +122,16 @@ class Creature extends Entity {
     this.applyForce(force)
   }
 
+  // THIS IS CAUSING TROUBLE
   seek(target) {
     var seek = target.copy().sub(this.location)
     seek.normalize()
     seek.mul(this.maxspeed)
-    seek.sub(this.velocity).limit(0.3)
+    seek.sub(this.velocity)
+    seek.limit(world.seekWeight)
 
     return seek
-  }
+  } 
 
   separate(creatures) {
     var sum = new Vector(0, 0)
@@ -151,23 +153,23 @@ class Creature extends Entity {
     sum.sub(this.velocity)
     sum.limit(this.maxforce)
 
-    return sum.mul(2)
+    // Pushes individual away from pack until they can turn around
+    return sum.mul(world.separateWeight)
   }
 
+  // Averages, and makes average velocity normal
   align(neighboors) {
-    // Get all the velocities
-    var locations = neighboors.map((c) => { return c.velocity })
-    var avgVelocity = new Vector().avg(locations, this)
+    var velocities = neighboors.map((c) => { return c.velocity })
+    var avgVelocity = new Vector().avg(velocities, this)
     avgVelocity.normalize()
     avgVelocity.mul(this.maxspeed)
     avgVelocity.sub(this.velocity).limit(this.maxspeed)
-    // CHANGE THIS BACK TO .1
-    return avgVelocity.limit(0.9)
+    return avgVelocity.limit(world.alignWeight)
   }
 
-  cohesion(neighboors) {
-    // Get all the locations and average them
-    var locations = neighboors.map((c) => { return c.location })
+  // Averages Location of neighbors
+  cohesion(creatures) {
+    var locations = creatures.map((c) => { return c.location })
     return new Vector().avg(locations, this)
   }
 }
