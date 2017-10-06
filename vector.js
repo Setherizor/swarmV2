@@ -97,16 +97,14 @@ class Vector {
     this.setAngle(Math.random() * Math.PI * 2)
     return this
   }
-  avg (values, parent) {
+  avg (locations, parent) {
     var sum = new Vector(0, 0)
-    var count = 0
-    for (var i in values) {
-      if (values[i] !== parent) {
-        sum.add(values[i])
-        count++
+    locations.forEach((v) => {
+      if (v !== parent) {
+        sum.add(v)
       }
-    }
-    sum.div(count)
+    })
+    sum.div(locations.length)  
     return sum
   }
 }

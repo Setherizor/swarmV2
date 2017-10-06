@@ -15,7 +15,7 @@ function blastoff () {
 
   // blastoff
   world = new World(canvas, ctx)
-  world.loop()
+  setInterval(world.loop, 1000 / world.fps)
 }
 
 blastoff()

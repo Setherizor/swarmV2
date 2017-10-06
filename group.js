@@ -1,21 +1,12 @@
-const getRandomColor = () => {
-  var letters = '012345'.split('')
-  var color = '#'
-  color += letters[Math.round(Math.random() * 5)]
-  letters = '0123456789ABCDEF'.split('')
-  for (var i = 0; i < 5; i++) {
-    color += letters[Math.round(Math.random() * 15)]
-  }
-  return color
-}
-
 class Group {
   constructor (world, name, num) {
     this.name = name
     this.num = num
     this.world = world
-    this.color = getRandomColor()
+    this.avgError = 0
+    this.color = '#' + Math.floor(Math.random() * 16777215).toString(16)
     this.creatures = []
+    this.package = []
     this.init()
   }
 
@@ -27,13 +18,11 @@ class Group {
       this.creatures[i].velocity.random()
     }
   }
-  targetX (creature) {
-    var cohesion = creature.cohesion(this.creatures)
-    return cohesion.x / world.width
-  }
-  targetY (creature) {
-    var cohesion = creature.cohesion(this.creatures)
-    return cohesion.y / world.height
+  targetXY (creature) {
+    var c = creature.cohesion(this.creatures)
+    var x = c.x / world.width
+    var y = c.y / world.width
+    return { x: x, y: y }
   }
   targetAngle (creature) {
     var alignment = creature.align(this.creatures)
@@ -44,34 +33,51 @@ class Group {
     this.creatures.forEach(function (creature, i, array) {
       // move
       var input = []
-      for (var i in array) {
-        input.push(array[i].location.x)
-        input.push(array[i].location.y)
-        input.push(array[i].velocity.x)
-        input.push(array[i].velocity.y)
-      }
-      var output = creature.network.activate(input)
+      array.forEach((c) => {
+        input.push(c.location.x)
+        input.push(c.location.y)
+        input.push(c.velocity.x)
+        input.push(c.velocity.y)
+      })
 
+      // TIME MEASUREMENT STUFF
+      const startTime = performance.now()
+
+      // the angle decides the general direction of the swarms
+      var output = [0.5, 0.5, Math.random()]
+      //creature.network.activate(input)
+
+      const duration = performance.now() - startTime
+      if (duration > 50) {
+        console.log(`we took took ${duration}ms`)
+        debugger
+      }
+      
+
+      // REGULAR STUFF
       creature.moveTo(output, array)
 
       // learn
-      var learningRate = 0.085
-      var target = [this.targetX(creature), this.targetY(creature), this.targetAngle(creature)]
+      const learningRate = 0.3
+      var targetXY = this.targetXY(creature)
+      var target = [targetXY.x, targetXY.y, this.targetAngle(creature)]
+      // var target = [200 / world.width, 200 / world.height, 40]
 
-      // creature.network.propagate(learningRate, target)
-      info += new Trainer(creature.network).train([{
-        input: input,
-        output: target
-      }], {
-        rate: learningRate,
-        iterations: 1,
-        error: 0.95,
-        cost: Trainer.cost.MSE
-      }).error
+      creature.network.propagate(learningRate, target)
+
+      // info += new Trainer(creature.network).train([{
+      //   input: input,
+      //   output: target
+      // }], {
+      //   rate: learningRate,
+      //   iterations: 1,
+      //   error: 0.95,
+      //   cost: Trainer.cost.MSE
+      // }).error
 
       creature.update()
     }, this)
     // Avg Error
-    return (info / this.creatures.length)
+    this.avgError = (info / this.creatures.length)
   }
 }

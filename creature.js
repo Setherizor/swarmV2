@@ -1,5 +1,5 @@
 class Entity {
-  constructor (world, mass, x, y, maxspeed, maxforce, color) {
+  constructor(world, mass, x, y, maxspeed, maxforce, color) {
     this.world = world
     this.mass = mass
     this.square = true
@@ -16,7 +16,7 @@ class Entity {
     this.color = color
   }
 
-  draw () {
+  draw() {
     var ctx = this.world.context
     var angle = this.velocity.angle()
 
@@ -32,10 +32,10 @@ class Entity {
       var x4 = this.location.x + inc
       var y4 = this.location.y
       pts = [
-        { x: x1, y: y1},
-        { x: x2, y: y2},
-        { x: x3, y: y3},
-        { x: x4, y: y4}
+        { x: x1, y: y1 },
+        { x: x2, y: y2 },
+        { x: x3, y: y3 },
+        { x: x4, y: y4 }
       ]
     } else {
       var x1 = this.location.x + Math.cos(angle) * this.base
@@ -47,9 +47,9 @@ class Entity {
       var x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
       var y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
       pts = [
-        { x: x1, y: y1},
-        { x: x2, y: y2},
-        { x: x3, y: y3}
+        { x: x1, y: y1 },
+        { x: x2, y: y2 },
+        { x: x3, y: y3 }
       ]
     }
 
@@ -64,7 +64,7 @@ class Entity {
     ctx.stroke()
     ctx.fill()
   }
-  update () {
+  update() {
     this.boundaries()
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
@@ -74,13 +74,13 @@ class Entity {
     this.draw()
   }
 
-  applyForce (force) {
+  applyForce(force) {
     this.acceleration.add(force)
   }
 
-  boundaries () {
+  boundaries() {
     var buffer = 15
-    var force = 2
+    var force = 4
     if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * force, 0)) }
 
     if (this.location.x > this.world.width - buffer) { this.applyForce(new Vector(-this.maxforce * force, 0)) }
@@ -92,7 +92,7 @@ class Entity {
 }
 
 class Creature extends Entity {
-  constructor (world, x, y, group, color) {
+  constructor(world, x, y, group, color) {
     var mass = 0.6
     var maxspeed = 2
     var maxforce = 0.2
@@ -103,26 +103,26 @@ class Creature extends Entity {
     this.network = new Architect.Perceptron(nodes, nodes / 2 + 5, 3)
   }
 
-  update () {
+  update() {
     if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
     super.update()
   }
 
-  moveTo (networkOutput, creatures) {
-    var force = new Vector(0, 0)
-
+  moveTo(networkOutput, creatures) {
     var target = new Vector(networkOutput[0] * this.world.width, networkOutput[1] * this.world.height)
     var angle = (networkOutput[2] * this.TWO_PI) - Math.PI
 
     var separation = this.separate(creatures)
     var alignment = this.align(creatures).setAngle(angle)
     var cohesion = this.seek(target)
-
-    force.add([separation, alignment, cohesion])
+    
+    var forces = [separation, alignment, cohesion]
+    var force = new Vector(0, 0)
+    forces.forEach((f) => { force.add(f) })
     this.applyForce(force)
   }
 
-  seek (target) {
+  seek(target) {
     var seek = target.copy().sub(this.location)
     seek.normalize()
     seek.mul(this.maxspeed)
@@ -131,25 +131,20 @@ class Creature extends Entity {
     return seek
   }
 
-  separate (creatures) {
+  separate(creatures) {
     var sum = new Vector(0, 0)
-    var count = 0
 
     creatures.forEach((x) => {
-      if (x != this) {
-        var d = this.location.dist(x.location)
-        if (d < 24 && d > 0) {
-          var diff = this.location.copy().sub(x.location)
-          diff.normalize()
-          diff.div(d)
-          sum.add(diff)
-          count++
-        }
+      var d = this.location.dist(x.location)
+      if (d < 24 && d > 0) {
+        var diff = this.location.copy().sub(x.location)
+        diff.normalize()
+        diff.div(d)
+        sum.add(diff)
       }
     }, this)
-    if (!count) { return sum }
-
-    sum.div(count)
+ 
+    sum.div(creatures.length)
 
     sum.normalize()
     sum.mul(this.maxspeed)
@@ -159,19 +154,20 @@ class Creature extends Entity {
     return sum.mul(2)
   }
 
-  align (neighboors) {
+  align(neighboors) {
     // Get all the velocities
-    var values = neighboors.map((x) => { return x.velocity })
-    var sum = new Vector().avg(values, this)
-    sum.normalize()
-    sum.mul(this.maxspeed)
-    sum.sub(this.velocity).limit(this.maxspeed)
-    return sum.limit(0.1)
+    var locations = neighboors.map((c) => { return c.velocity })
+    var avgVelocity = new Vector().avg(locations, this)
+    avgVelocity.normalize()
+    avgVelocity.mul(this.maxspeed)
+    avgVelocity.sub(this.velocity).limit(this.maxspeed)
+    // CHANGE THIS BACK TO .1
+    return avgVelocity.limit(0.9)
   }
 
-  cohesion (neighboors) {
-    // Get all the locations
-    var values = neighboors.map((x) => { return x.location })
-    return new Vector().avg(values, this)
+  cohesion(neighboors) {
+    // Get all the locations and average them
+    var locations = neighboors.map((c) => { return c.location })
+    return new Vector().avg(locations, this)
   }
 }
