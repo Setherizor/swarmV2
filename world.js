@@ -6,21 +6,21 @@ class World {
     this.context = ctx
     this.loops = 0
 
-    this.seekWeight = 2//0.3
+    this.seekWeight = 0.03
     this.separateWeight = 2
     this.alignWeight = 0.1
 
-    var size = 30
+    var size = 10
     this.things = [
       // apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
     ]
     this.groups = [
-      new Group(this, 'GroupA', size),
-      new Group(this, 'GroupB', size),
-      new Group(this, 'GroupC', size),
-      new Group(this, 'GroupD', size),
-      new Group(this, 'GroupE', size),
-      new Group(this, 'GroupF', size)
+      new Group(this, 'GroupA', size)
+      // new Group(this, 'GroupB', size),
+      // new Group(this, 'GroupC', size),
+      // new Group(this, 'GroupD', size),
+      // new Group(this, 'GroupE', size),
+      // new Group(this, 'GroupF', size)
     ]
   }
 
@@ -33,7 +33,7 @@ class World {
     return groupFitness
   }
   // Re initializex the groups
-  reset() {
+  reset () {
     const forEachUpdate = (x) => { x.forEach((a) => { a.init() }) }
     forEachUpdate(this.groups)
   }

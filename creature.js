@@ -107,11 +107,7 @@ class Creature extends Entity {
     var separation = this.separate(creatures)
     var alignment = this.align(creatures).setAngle(angle)
     var cohesion = this.seek(target)
-    
-    if (this == world.groups[0].creatures[0]) {
-      console.log(cohesion)  
-    }
-    
+
     var forces = [separation, alignment, cohesion]
     var force = new Vector(0, 0)
     forces.forEach((f) => { force.add(f) })
@@ -119,10 +115,15 @@ class Creature extends Entity {
   }
   seek (target) {
     var seek = target.copy().sub(this.location)
-    seek.normalize()
-    seek.mul(this.maxspeed)
-    seek.sub(this.velocity)
+    this.applyVector(seek)
     seek.limit(world.seekWeight)
+
+    if (this == world.groups[0].creatures[0]) {
+      console.log({
+        x: seek.x * world.width,
+        y: seek.y * world.height
+      })
+    }
 
     return seek
   }
@@ -140,9 +141,7 @@ class Creature extends Entity {
 
     sum.div(creatures.length)
 
-    sum.normalize()
-    sum.mul(this.maxspeed)
-    sum.sub(this.velocity)
+    this.applyVector(sum)
     sum.limit(this.maxforce)
 
     // Pushes individual away from pack until they can turn around
@@ -152,14 +151,19 @@ class Creature extends Entity {
   align (neighboors) {
     var velocities = neighboors.map((c) => { return c.velocity })
     var avgVelocity = new Vector().avg(velocities, this)
-    avgVelocity.normalize()
-    avgVelocity.mul(this.maxspeed)
-    avgVelocity.sub(this.velocity).limit(this.maxspeed)
+    this.applyVector(avgVelocity)
+    avgVelocity.limit(this.maxforce)
     return avgVelocity.limit(world.alignWeight)
   }
   // Averages Location of neighbors
   cohesion (creatures) {
     var locations = creatures.map((c) => { return c.location })
     return new Vector().avg(locations, this)
+  }
+
+  applyVector (v) {
+    v.normalize()
+    v.mul(this.maxspeed)
+    v.sub(this.velocity)
   }
 }
