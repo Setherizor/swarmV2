@@ -6,21 +6,23 @@ class World {
     this.context = ctx
     this.loops = 0
 
-    this.seekWeight = 0.03
+    this.seekWeight = 0.01
     this.separateWeight = 2
     this.alignWeight = 0.1
+    this.boundForce = 4
+    this.buffer = 15
 
-    var size = 10
+    var size = 30
     this.things = [
       // apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
     ]
     this.groups = [
-      new Group(this, 'GroupA', size)
-      // new Group(this, 'GroupB', size),
-      // new Group(this, 'GroupC', size),
-      // new Group(this, 'GroupD', size),
-      // new Group(this, 'GroupE', size),
-      // new Group(this, 'GroupF', size)
+      new Group(this, 'GroupA', size),
+      new Group(this, 'GroupB', size),
+      new Group(this, 'GroupC', size),
+      new Group(this, 'GroupD', size),
+      new Group(this, 'GroupE', size),
+      new Group(this, 'GroupF', size)
     ]
   }
 

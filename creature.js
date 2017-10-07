@@ -1,11 +1,11 @@
 class Entity {
-  constructor (world, mass, x, y, maxspeed, maxforce, color) {
+  constructor(world, mass, x, y, maxspeed, maxforce, color) {
     this.world = world
     this.mass = mass
     this.square = true
     this.maxspeed = maxspeed
     this.maxforce = maxforce
-    this.lookRange = this.mass * 200
+    this.lookRange = this.mass * 70
     this.length = this.mass * 10
     this.base = this.length * 0.5
     this.HALF_PI = Math.PI * 0.5
@@ -16,7 +16,7 @@ class Entity {
     this.color = color
   }
 
-  draw () {
+  draw() {
     var ctx = this.world.context
     var angle = this.velocity.angle()
 
@@ -64,7 +64,7 @@ class Entity {
     ctx.stroke()
     ctx.fill()
   }
-  update () {
+  update() {
     this.boundaries()
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
@@ -74,12 +74,12 @@ class Entity {
     this.acceleration.mul(0)
     this.draw()
   }
-  applyForce (force) {
+  applyForce(force) {
     this.acceleration.add(force)
   }
-  boundaries () {
-    const buffer = 15
-    const force = 4
+  boundaries() {
+    const buffer = world.buffer
+    const force = world.boundForce
     if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * force, 0)) }
 
     if (this.location.x > this.world.width - buffer) { this.applyForce(new Vector(-this.maxforce * force, 0)) }
@@ -91,8 +91,8 @@ class Entity {
 }
 
 class Creature extends Entity {
-  constructor (world, x, y, group, color) {
-    var mass = 0.6
+  constructor(world, x, y, group, color) {
+    var mass = 0.7
     var maxspeed = 2
     var maxforce = 0.2
     super(world, mass, x, y, maxspeed, maxforce, color)
@@ -100,7 +100,7 @@ class Creature extends Entity {
     this.group = group
   }
 
-  moveTo (output, creatures) {
+  moveTo(output, creatures) {
     var target = new Vector(output[0] * this.world.width, output[1] * this.world.height)
     var angle = (output[2] * this.TWO_PI) - Math.PI
 
@@ -113,55 +113,66 @@ class Creature extends Entity {
     forces.forEach((f) => { force.add(f) })
     this.applyForce(force)
   }
-  seek (target) {
+  seek(target) {
     var seek = target.copy().sub(this.location)
     this.applyVector(seek)
     seek.limit(world.seekWeight)
-
-    if (this == world.groups[0].creatures[0]) {
-      console.log({
-        x: seek.x * world.width,
-        y: seek.y * world.height
-      })
-    }
-
     return seek
   }
-  separate (creatures) {
+  separate(creatures) {
     var sum = new Vector(0, 0)
-    creatures.forEach((x) => {
-      var d = this.location.dist(x.location)
-      if (d < 24 && d > 0) {
-        var diff = this.location.copy().sub(x.location)
-        diff.normalize()
-        diff.div(d)
-        sum.add(diff)
-      }
-    }, this)
 
-    sum.div(creatures.length)
+    var neighboors = creatures.filter((c, i) => {
+      var d = this.location.dist(c.location)
+      return (d < 24 && d > 0)
+    })
+
+    if (neighboors.length > 0) {
+      var values = neighboors.map((c, i) => {
+        var diff = this.location.copy().sub(c.location)
+        diff.normalize()
+        diff.div(this.location.dist(c.location))
+        return diff
+      }, this)
+      sum = new Vector().avg(values, this)
+    }
 
     this.applyVector(sum)
     sum.limit(this.maxforce)
-
     // Pushes individual away from pack until they can turn around
     return sum.mul(world.separateWeight)
   }
   // Averages, and makes average velocity normal
-  align (neighboors) {
-    var velocities = neighboors.map((c) => { return c.velocity })
-    var avgVelocity = new Vector().avg(velocities, this)
-    this.applyVector(avgVelocity)
-    avgVelocity.limit(this.maxforce)
+  // align(neighboors) {
+  //   var velocities = neighboors.map((c) => { return c.velocity })
+  //   var avgVelocity = new Vector().avg(velocities, this)
+  //   this.applyVector(avgVelocity)
+  //   avgVelocity.limit(this.maxforce)
+  //   return avgVelocity.limit(world.alignWeight)
+  // }
+  align(creatures) {
+    var avgVelocity = new Vector(0, 0)
+    var neighboors = creatures.filter((c, i) => {
+      var d = this.location.dist(c.location)
+      return (d < this.lookRange && d > 0)
+    })
+
+    if (neighboors.length > 0) {
+      var velocities = neighboors.map((c) => { return c.velocity })
+      avgVelocity = new Vector().avg(velocities, this)
+      this.applyVector(avgVelocity)
+      avgVelocity.limit(this.maxforce)
+     
+    }
     return avgVelocity.limit(world.alignWeight)
-  }
+    }
   // Averages Location of neighbors
-  cohesion (creatures) {
+  cohesion(creatures) {
     var locations = creatures.map((c) => { return c.location })
     return new Vector().avg(locations, this)
   }
 
-  applyVector (v) {
+  applyVector(v) {
     v.normalize()
     v.mul(this.maxspeed)
     v.sub(this.velocity)

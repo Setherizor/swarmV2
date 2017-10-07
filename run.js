@@ -27,6 +27,8 @@ window.onload = function () {
     gui.add(w, 'seekWeight', -2, 2)
     gui.add(w, 'separateWeight', -1, 6)
     gui.add(w, 'alignWeight', 0, 3)
+    gui.add(w, 'boundForce', 3, 20)
+    gui.add(w, 'buffer', 15, 550)
     gui.add(w, 'reset')
     gui.remember(w)
   }
