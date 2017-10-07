@@ -1,26 +1,26 @@
 class World {
   constructor (canvas, ctx) {
-    this.fps = 60
+    this.fps = 100
     this.width = canvas.width
     this.height = canvas.height
     this.context = ctx
     this.loops = 0
 
-    this.seekWeight = 0.3
+    this.seekWeight = 2//0.3
     this.separateWeight = 2
     this.alignWeight = 0.1
 
-    var size = 5
+    var size = 30
     this.things = [
       // apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
     ]
     this.groups = [
       new Group(this, 'GroupA', size),
       new Group(this, 'GroupB', size),
-      new Group(this, 'GroupC', size)
-      // new Group(this, 'GroupD', size),
-      // new Group(this, 'GroupE', size),
-      // new Group(this, 'GroupF', size)
+      new Group(this, 'GroupC', size),
+      new Group(this, 'GroupD', size),
+      new Group(this, 'GroupE', size),
+      new Group(this, 'GroupF', size)
     ]
   }
 
@@ -29,12 +29,14 @@ class World {
     const forEachUpdate = (x) => { x.forEach((a) => { a.update() }) }
     forEachUpdate(this.groups)
     forEachUpdate(this.things)
-
     const groupFitness = this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
-
     return groupFitness
   }
-
+  // Re initializex the groups
+  reset() {
+    const forEachUpdate = (x) => { x.forEach((a) => { a.init() }) }
+    forEachUpdate(this.groups)
+  }
   // Recursively calls function to enable dynamic FPS
   loop () {
     world.loops++

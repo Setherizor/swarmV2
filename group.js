@@ -31,37 +31,9 @@ class Group {
   update () {
     var info = 0
     this.creatures.forEach(function (creature, i, array) {
-      // move
-      var input = []
-      array.forEach((c) => {
-        input.push(c.location.x)
-        input.push(c.location.y)
-        input.push(c.velocity.x)
-        input.push(c.velocity.y)
-      })
-
-      // TIME MEASUREMENT STUFF
-      const startTime = performance.now()
-
-      // the angle decides the general direction of the swarms
-      var output = creature.network.activate(input)
-
-      const duration = performance.now() - startTime
-      if (duration > 100) {
-        console.log(`we took took ${duration}ms`)
-      }
-
-      // REGULAR STUFF
-      creature.moveTo(output, array)
-
-      // learn
-      const learningRate = 0.3
       var targetXY = this.targetXY(creature)
       var target = [targetXY.x, targetXY.y, this.targetAngle(creature)]
-      // var target = [200 / world.width, 200 / world.height, 40]
-
-      // Being trained to predict the average location, and average aim/velocity
-      creature.network.propagate(learningRate, target)
+      creature.moveTo(target, array)
       creature.update()
     }, this)
     // Avg Error

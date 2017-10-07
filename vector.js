@@ -24,21 +24,17 @@ class Vector {
   sub (v) {
     this.x -= v.x
     this.y -= v.y
-
     return this
   }
   mul (s) {
     this.x *= s
     this.y *= s
-
     return this
   }
   div (s) {
     !s && console.log('Division by zero!')
-
     this.x /= s
     this.y /= s
-
     return this
   }
   mag () {

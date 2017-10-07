@@ -14,20 +14,21 @@ function blastoff () {
   window.addEventListener('resize', resizeCanvas, false)
 
   world = new World(canvas, ctx)
-  // Use this and the SetTimeout for recursion
   world.loop()
-  // Use this for a non Recursive option (FPS LOCKED)
-  //setInterval(world.loop, 1000 / world.fps)
 }
 
-window.onload = function() {
+window.onload = function () {
   blastoff()
-  var w = world
-  var gui = new dat.GUI()
-  gui.close()
-  gui.add(w, 'fps', 2, 100)
-  gui.add(w, 'seekWeight', -1, 2)
-  gui.add(w, 'separateWeight', -1, 2)
-  gui.add(w, 'alignWeight', -1, 2)
-  gui.remember(w);
+  asyncGui = function () {
+    var w = world
+    var gui = new dat.GUI()
+    gui.close()
+    gui.add(w, 'fps', 10, 300)
+    gui.add(w, 'seekWeight', -2, 2)
+    gui.add(w, 'separateWeight', -1, 6)
+    gui.add(w, 'alignWeight', 0, 3)
+    gui.add(w, 'reset')
+    gui.remember(w)
+  }
+  setTimeout(asyncGui, 0)
 }

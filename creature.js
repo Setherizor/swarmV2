@@ -68,19 +68,18 @@ class Entity {
     this.boundaries()
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
-
+    // Speed Normalization
+    if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
     this.location.add(this.velocity)
     this.acceleration.mul(0)
     this.draw()
   }
-
   applyForce (force) {
     this.acceleration.add(force)
   }
-
   boundaries () {
-    var buffer = 15
-    var force = 4
+    const buffer = 15
+    const force = 4
     if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * force, 0)) }
 
     if (this.location.x > this.world.width - buffer) { this.applyForce(new Vector(-this.maxforce * force, 0)) }
@@ -99,30 +98,25 @@ class Creature extends Entity {
     super(world, mass, x, y, maxspeed, maxforce, color)
     this.square = false
     this.group = group
-    var nodes = (this.group.num * 4)
-    this.network = new Architect.Perceptron(nodes, nodes / 2 + 5, 3)
   }
 
-  update () {
-    if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
-    super.update()
-  }
-
-  moveTo (networkOutput, creatures) {
-    var target = new Vector(networkOutput[0] * this.world.width, networkOutput[1] * this.world.height)
-    var angle = (networkOutput[2] * this.TWO_PI) - Math.PI
+  moveTo (output, creatures) {
+    var target = new Vector(output[0] * this.world.width, output[1] * this.world.height)
+    var angle = (output[2] * this.TWO_PI) - Math.PI
 
     var separation = this.separate(creatures)
     var alignment = this.align(creatures).setAngle(angle)
     var cohesion = this.seek(target)
-
+    
+    if (this == world.groups[0].creatures[0]) {
+      console.log(cohesion)  
+    }
+    
     var forces = [separation, alignment, cohesion]
     var force = new Vector(0, 0)
     forces.forEach((f) => { force.add(f) })
     this.applyForce(force)
   }
-
-  // THIS IS CAUSING TROUBLE
   seek (target) {
     var seek = target.copy().sub(this.location)
     seek.normalize()
@@ -132,10 +126,8 @@ class Creature extends Entity {
 
     return seek
   }
-
   separate (creatures) {
     var sum = new Vector(0, 0)
-
     creatures.forEach((x) => {
       var d = this.location.dist(x.location)
       if (d < 24 && d > 0) {
@@ -156,7 +148,6 @@ class Creature extends Entity {
     // Pushes individual away from pack until they can turn around
     return sum.mul(world.separateWeight)
   }
-
   // Averages, and makes average velocity normal
   align (neighboors) {
     var velocities = neighboors.map((c) => { return c.velocity })
@@ -166,7 +157,6 @@ class Creature extends Entity {
     avgVelocity.sub(this.velocity).limit(this.maxspeed)
     return avgVelocity.limit(world.alignWeight)
   }
-
   // Averages Location of neighbors
   cohesion (creatures) {
     var locations = creatures.map((c) => { return c.location })

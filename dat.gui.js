@@ -698,10 +698,10 @@
       } else if (colorFormat === 'RGBA_OBJ') {
         return '{r:' + r + ',g:' + g + ',b:' + b + ',a:' + a + '}'
       } else if (colorFormat === 'HSV_OBJ') {
-    return '{h:' + h + ',s:' + s + ',v:' + v + '}'
-  } else if (colorFormat === 'HSVA_OBJ') {
-  return '{h:' + h + ',s:' + s + ',v:' + v + ',a:' + a + '}'
-}
+        return '{h:' + h + ',s:' + s + ',v:' + v + '}'
+      } else if (colorFormat === 'HSVA_OBJ') {
+        return '{h:' + h + ',s:' + s + ',v:' + v + ',a:' + a + '}'
+      }
 
       return 'unknown format'
     }
