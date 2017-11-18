@@ -1,5 +1,5 @@
 class Group {
-  constructor (world, name, num) {
+  constructor(world, name, num) {
     this.name = name
     this.num = num
     this.world = world
@@ -10,7 +10,7 @@ class Group {
     this.init()
   }
 
-  init () {
+  init() {
     for (var i = 0; i < this.num; i++) {
       var x = Math.random() * this.world.width
       var y = Math.random() * this.world.height
@@ -18,17 +18,17 @@ class Group {
       this.creatures[i].velocity.random()
     }
   }
-  targetXY (creature) {
+  targetXY(creature) {
     var c = creature.cohesion(this.creatures)
     var x = c.x / world.width
     var y = c.y / world.width
     return { x: x, y: y }
   }
-  targetAngle (creature) {
+  targetAngle(creature) {
     var alignment = creature.align(this.creatures)
     return (alignment.angle() + Math.PI) / (Math.PI * 2)
   }
-  update () {
+  update() {
     var info = 0
     this.creatures.forEach(function (creature, i, array) {
       var targetXY = this.targetXY(creature)

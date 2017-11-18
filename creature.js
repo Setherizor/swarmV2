@@ -162,10 +162,10 @@ class Creature extends Entity {
       avgVelocity = new Vector().avg(velocities, this)
       this.applyVector(avgVelocity)
       avgVelocity.limit(this.maxforce)
-     
+
     }
     return avgVelocity.limit(world.alignWeight)
-    }
+  }
   // Averages Location of neighbors
   cohesion(creatures) {
     var locations = creatures.map((c) => { return c.location })

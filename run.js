@@ -1,7 +1,7 @@
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
 
-function blastoff () {
+function blastoff() {
   const adj = 4.0001
   canvas.width = window.innerWidth - adj
   canvas.height = window.innerHeight - adj
