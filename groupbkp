@@ -32,6 +32,7 @@ class Group {
 
   update() {
     let info = 0
+    //    let points = qtree.query(range);
     this.creatures.forEach(function (creature, i, array) {
       let targetXY = this.targetXY(creature)
       let target = [targetXY.x, targetXY.y, this.targetAngle(creature)]

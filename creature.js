@@ -2,68 +2,33 @@ class Entity {
   constructor(world, mass, x, y, maxspeed, maxforce, color) {
     this.world = world
     this.mass = mass
-    this.square = true
     this.maxspeed = maxspeed
     this.maxforce = maxforce
-    this.lookRange = this.mass * 70
+    this.lookRange = 250//this.mass * 70
     this.length = this.mass * 10
     this.base = this.length * 0.5
     this.HALF_PI = Math.PI * 0.5
     this.TWO_PI = Math.PI * 2
-    this.location = new Vector(x, y)
-    this.velocity = new Vector(0, 0)
-    this.acceleration = new Vector(0, 0)
+    this.location = createVector(x, y)//new Vector(x, y)
+    this.x = this.location.x
+    this.y = this.location.y
+    this.velocity = createVector(0, 0)//new Vector(0, 0)
+    this.acceleration = createVector(0, 0)//new Vector(0, 0)
     this.color = color
   }
 
   draw() {
-    var ctx = this.world.context
-    var angle = this.velocity.angle()
-
-    var pts = []
-    if (this.square) {
-      var inc = 10
-      var x1 = this.location.x
-      var y1 = this.location.y
-      var x2 = this.location.x
-      var y2 = this.location.y + inc
-      var x3 = this.location.x + inc
-      var y3 = this.location.y + inc
-      var x4 = this.location.x + inc
-      var y4 = this.location.y
-      pts = [
-        { x: x1, y: y1 },
-        { x: x2, y: y2 },
-        { x: x3, y: y3 },
-        { x: x4, y: y4 }
-      ]
-    } else {
-      var x1 = this.location.x + Math.cos(angle) * this.base
-      var y1 = this.location.y + Math.sin(angle) * this.base
-
-      var x2 = this.location.x + Math.cos(angle + this.HALF_PI) * this.base
-      var y2 = this.location.y + Math.sin(angle + this.HALF_PI) * this.base
-
-      var x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
-      var y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
-      pts = [
-        { x: x1, y: y1 },
-        { x: x2, y: y2 },
-        { x: x3, y: y3 }
-      ]
-    }
-
-    ctx.lineWidth = 2
-    ctx.fillStyle = this.color
-    ctx.strokeStyle = this.color
-    ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    pts.forEach((pt) => {
-      ctx.lineTo(pt.x, pt.y)
-    })
-    ctx.stroke()
-    ctx.fill()
+    let angle = this.velocity.heading()
+    let x1 = this.location.x + Math.cos(angle) * this.base
+    let y1 = this.location.y + Math.sin(angle) * this.base
+    let x2 = this.location.x + Math.cos(angle + this.HALF_PI) * this.base
+    let y2 = this.location.y + Math.sin(angle + this.HALF_PI) * this.base
+    let x3 = this.location.x + Math.cos(angle - this.HALF_PI) * this.base
+    let y3 = this.location.y + Math.sin(angle - this.HALF_PI) * this.base
+    fill(this.color)
+    triangle(x1, y1, x2, y2, x3, y3)
   }
+
   update() {
     this.boundaries()
     this.velocity.add(this.acceleration)
@@ -71,110 +36,136 @@ class Entity {
     // Speed Normalization
     if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
     this.location.add(this.velocity)
-    this.acceleration.mul(0)
+    this.acceleration.mult(0)
     this.draw()
   }
+
   applyForce(force) {
     this.acceleration.add(force)
   }
+
   boundaries() {
     const buffer = world.buffer
     const force = world.boundForce
-    if (this.location.x < buffer) { this.applyForce(new Vector(this.maxforce * force, 0)) }
+    if (this.location.x < buffer)
+      this.applyForce(createVector(this.maxforce * force, 0))
 
-    if (this.location.x > this.world.width - buffer) { this.applyForce(new Vector(-this.maxforce * force, 0)) }
+    if (this.location.x > this.world.width - buffer)
+      this.applyForce(createVector(-this.maxforce * force, 0))
 
-    if (this.location.y < buffer) { this.applyForce(new Vector(0, this.maxforce * force)) }
+    if (this.location.y < buffer)
+      this.applyForce(createVector(0, this.maxforce * force))
 
-    if (this.location.y > this.world.height - buffer) { this.applyForce(new Vector(0, -this.maxforce * force)) }
+    if (this.location.y > this.world.height - buffer)
+      this.applyForce(createVector(0, -this.maxforce * force))
   }
 }
 
 class Creature extends Entity {
   constructor(world, x, y, group, color) {
-    var mass = 0.7
-    var maxspeed = 2
-    var maxforce = 0.2
+    let mass = 1.5
+    let maxspeed = 2
+    let maxforce = 0.2
     super(world, mass, x, y, maxspeed, maxforce, color)
-    this.square = false
     this.group = group
+    this.velocity = p5.Vector.random2D()
   }
 
   moveTo(output, creatures) {
-    var target = new Vector(output[0] * this.world.width, output[1] * this.world.height)
-    var angle = (output[2] * this.TWO_PI) - Math.PI
+    let target = createVector(output[0] * this.world.width, output[1] * this.world.height)
+    let angle = (output[2] * this.TWO_PI) - Math.PI
 
-    var separation = this.separate(creatures)
-    var alignment = this.align(creatures).setAngle(angle)
-    var cohesion = this.seek(target)
+    let separation = this.separate(creatures)
+    // let alignment = this.align(creatures).setAngle(angle)
 
-    var forces = [separation, alignment, cohesion]
-    var force = new Vector(0, 0)
+    function setAngle (v, a) {
+      var mag = v.mag()
+      v.x = mag * Math.cos(a)
+      v.y = mag * Math.sin(a)
+      return v
+    }
+
+    let alignment = setAngle(this.align(creatures), angle)
+    let cohesion = this.seek(target)
+
+    let forces = [separation, alignment, cohesion]
+    let force = createVector(0, 0)
     forces.forEach((f) => { force.add(f) })
     this.applyForce(force)
   }
   seek(target) {
-    var seek = target.copy().sub(this.location)
+    let seek = target.copy().sub(this.location)
     this.applyVector(seek)
     seek.limit(world.seekWeight)
     return seek
   }
   separate(creatures) {
-    var sum = new Vector(0, 0)
+    let sum = createVector(0, 0)
 
-    var neighboors = creatures.filter((c, i) => {
-      var d = this.location.dist(c.location)
+    let neighboors = creatures.filter((c, i) => {
+      let d = this.location.dist(c.location)
       return (d < 24 && d > 0)
     })
 
     if (neighboors.length > 0) {
-      var values = neighboors.map((c, i) => {
-        var diff = this.location.copy().sub(c.location)
+      let values = neighboors.map((c, i) => {
+        let diff = this.location.copy().sub(c.location)
         diff.normalize()
         diff.div(this.location.dist(c.location))
         return diff
       }, this)
-      sum = new Vector().avg(values, this)
+      sum = this.avgVec(values)
     }
 
     this.applyVector(sum)
     sum.limit(this.maxforce)
     // Pushes individual away from pack until they can turn around
-    return sum.mul(world.separateWeight)
+    return sum.mult(world.separateWeight)
   }
   // Averages, and makes average velocity normal
   // align(neighboors) {
-  //   var velocities = neighboors.map((c) => { return c.velocity })
-  //   var avgVelocity = new Vector().avg(velocities, this)
+  //   let velocities = neighboors.map((c) => { return c.velocity })
+  //   let avgVelocity = new Vector().avg(velocities, this)
   //   this.applyVector(avgVelocity)
   //   avgVelocity.limit(this.maxforce)
   //   return avgVelocity.limit(world.alignWeight)
   // }
   align(creatures) {
-    var avgVelocity = new Vector(0, 0)
-    var neighboors = creatures.filter((c, i) => {
-      var d = this.location.dist(c.location)
+    let avgVelocity = createVector(0, 0)
+    let neighboors = creatures.filter((c, i) => {
+      let d = this.location.dist(c.location)
       return (d < this.lookRange && d > 0)
     })
 
     if (neighboors.length > 0) {
-      var velocities = neighboors.map((c) => { return c.velocity })
-      avgVelocity = new Vector().avg(velocities, this)
+      let velocities = neighboors.map((c) => { return c.velocity })
+      avgVelocity = this.avgVec(velocities)
       this.applyVector(avgVelocity)
       avgVelocity.limit(this.maxforce)
-
     }
+
     return avgVelocity.limit(world.alignWeight)
   }
   // Averages Location of neighbors
   cohesion(creatures) {
-    var locations = creatures.map((c) => { return c.location })
-    return new Vector().avg(locations, this)
+    let locations = creatures.map((c) => { return c.location })
+    return this.avgVec(locations)
+  }
+
+  avgVec(values) {
+    let sum = createVector(0, 0)
+    values.forEach((v) => {
+      if (v !== this) {
+        sum.add(v)
+      }
+    })
+    sum.div(values.length)
+    return sum
   }
 
   applyVector(v) {
     v.normalize()
-    v.mul(this.maxspeed)
+    v.mult(this.maxspeed)
     v.sub(this.velocity)
   }
 }
