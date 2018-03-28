@@ -1,10 +1,10 @@
 class Entity {
   constructor(world, mass, x, y, maxspeed, maxforce, color) {
     this.world = world
-    this.mass = mass
     this.maxspeed = maxspeed
     this.maxforce = maxforce
     this.lookRange = 50
+    this.mass = mass
     this.length = this.mass * 10
     this.base = this.length * 0.5
     this.location = createVector(x, y)
@@ -19,7 +19,7 @@ class Entity {
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
     // Speed Normalization
-    if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
+    // if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
     this.location.add(this.velocity)
     this.acceleration.mult(0)
     this.draw()
@@ -141,7 +141,7 @@ class Creature extends Entity {
     // Pushes individual away from pack until they can turn around
     return sum
   }
-  
+
   // Averages, and makes average velocity normal
   align() {
     let avgVelocity = createVector(0, 0)

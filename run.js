@@ -10,7 +10,7 @@ function setup() {
   world = new World()
   gui = new dat.GUI()
   gui.close()
-  gui.add(world, 'fps', 5, 200)
+  gui.add(world, 'fps', 1, 150)
   gui.add(world, 'seekWeight', -1, 1)
   gui.add(world, 'separateWeight', -1, 3)
   gui.add(world, 'alignWeight', -1, 3)
@@ -34,5 +34,5 @@ function draw() {
 
   // Run The World
   frameRate(world.fps)
-  world.show()
+  world.update()
 }
