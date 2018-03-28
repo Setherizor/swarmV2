@@ -5,6 +5,7 @@ class Group {
     this.world = world
     this.avgError = 0
     this.color = '#' + Math.floor(random(16777215)).toString(16)
+    this.qtree = new QuadTree(boundary, 4);
     this.creatures = []
     this.package = []
     this.init()
@@ -19,19 +20,24 @@ class Group {
   }
 
   targetXY(creature) {
-    let c = creature.cohesion(this.creatures)
+    let c = creature.cohesion()
     let x = c.x / world.width
     let y = c.y / world.width
     return { x: x, y: y }
   }
 
   targetAngle(creature) {
-    let alignment = creature.align(this.creatures)
-    return (alignment.heading() + Math.PI) / (Math.PI * 2)
+    let alignment = creature.align()
+    return alignment.heading()
   }
 
   update() {
     let info = 0
+
+    this.qtree = new QuadTree(boundary, 4);
+    for (let c of this.creatures)
+      this.qtree.insert(c.location);
+
     this.creatures.forEach(function (creature, i, array) {
       let targetXY = this.targetXY(creature)
       let target = [targetXY.x, targetXY.y, this.targetAngle(creature)]

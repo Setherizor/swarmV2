@@ -12,28 +12,29 @@ class World {
     this.boundForce = 4
     this.buffer = 15
 
-    let groupSize = 30
-    // this.groups = ['A', 'B', 'C', 'D', 'E', 'F'].map(l => new Group(this, 'Group' + l, groupSize))
-    this.groups = ['A', 'B'].map(l => new Group(this, 'Group' + l, groupSize))
+    this.groups = []
+    let groups = 3
+    let groupSize = 100
+    for (let i = 0; i < groups; i++)
+      this.groups.push(new Group(this, 'Group' + i, groupSize))
   }
 
-  // Calls update function for all groups and things
+  // Calls update function for all groups and things, can return the fitness
   update() {
-    const forEachUpdate = (x) => { x.forEach((a) => a.update()) }
+    const forEachUpdate = x => x.forEach(a => a.update())
     forEachUpdate(this.groups)
-    const groupFitness = this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
-    return groupFitness
+    // return this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
   }
 
   // Re initialize the groups
   reset() {
-    const forEachInit = (x) => { x.forEach((a) => a.init()) }
+    const forEachInit = x => x.forEach(a => a.init())
     forEachInit(this.groups)
   }
 
   // Show and update
   show() {
     world.loops++
-    const error = world.update()
+    const fitness = world.update()
   }
 }
