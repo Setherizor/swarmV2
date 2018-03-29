@@ -7,9 +7,6 @@ class World {
     this.highlightFirst = false
     this.showGroupMiddles = false
 
-    // this.cohesionWeight = 0.01
-    // this.separateWeight = .5
-    // this.alignWeight = 0.02
     this.separateWeight = 2.5
     this.alignWeight = 1.0
     this.cohesionWeight = 1.0
