@@ -4,39 +4,41 @@ class Group {
     this.num = num
     this.world = world
     this.avgError = 0
-    this.color = '#' + Math.floor(Math.random() * 16777215).toString(16)
+    this.color = '#' + Math.floor(random(16777215)).toString(16)
+    this.qtree = new QuadTree(boundary, 4);
     this.creatures = []
     this.package = []
     this.init()
   }
 
   init() {
-    for (var i = 0; i < this.num; i++) {
-      var x = Math.random() * this.world.width
-      var y = Math.random() * this.world.height
+    for (let i = 0; i < this.num; i++) {
+      let x = random(this.world.width)
+      let y = random(this.world.height)
       this.creatures[i] = new Creature(this.world, x, y, this, this.color)
-      this.creatures[i].velocity.random()
     }
   }
+
   targetXY(creature) {
-    var c = creature.cohesion(this.creatures)
-    var x = c.x / world.width
-    var y = c.y / world.width
+    let c = creature.cohesion()
+    let x = c.x / world.width
+    let y = c.y / world.width
     return { x: x, y: y }
   }
+
   targetAngle(creature) {
-    var alignment = creature.align(this.creatures)
-    return (alignment.angle() + Math.PI) / (Math.PI * 2)
+    let alignment = creature.align()
+    return alignment.heading()
   }
+
   update() {
-    var info = 0
-    this.creatures.forEach(function (creature, i, array) {
-      var targetXY = this.targetXY(creature)
-      var target = [targetXY.x, targetXY.y, this.targetAngle(creature)]
-      creature.moveTo(target, array)
-      creature.update()
-    }, this)
-    // Avg Error
-    this.avgError = (info / this.creatures.length)
+    this.qtree = new QuadTree(boundary, 4);
+    for (let c of this.creatures)
+      this.qtree.insert(c.location);
+
+    this.creatures.forEach(c => {
+      c.flock()
+      c.update()
+    })
   }
 }

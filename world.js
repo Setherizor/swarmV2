@@ -1,57 +1,49 @@
 class World {
-  constructor(canvas, ctx) {
+  constructor() {
     this.fps = 100
-    this.width = canvas.width
-    this.height = canvas.height
-    this.context = ctx
-    this.loops = 0
+    this.width = width
+    this.height = height
 
-    this.seekWeight = 0.01
-    this.separateWeight = 2
-    this.alignWeight = 0.1
+    this.highlightFirst = false
+    this.showGroupMiddles = false
+
+    this.separateWeight = 2.5
+    this.alignWeight = 1.0
+    this.cohesionWeight = 1.0
+
     this.boundForce = 4
     this.buffer = 15
+    this.viewRange = 50;
 
-    var size = 30
-    this.things = [
-      // apple: new Entity(this, 4, 202, 202, 0, 0 , '#f44542')
-    ]
-    this.groups = [
-      new Group(this, 'GroupA', size),
-      new Group(this, 'GroupB', size),
-      new Group(this, 'GroupC', size),
-      new Group(this, 'GroupD', size),
-      new Group(this, 'GroupE', size),
-      new Group(this, 'GroupF', size)
-    ]
+    this.groupNum = 5
+    this.groupSize = 50
+    this.reset()
   }
 
-  // Calls update function for all groups and things
+  // Calls update function for all groups and things, can return the fitness
   update() {
-    const forEachUpdate = (x) => { x.forEach((a) => { a.update() }) }
+    const forEachUpdate = x => x.forEach(a => a.update())
     forEachUpdate(this.groups)
-    forEachUpdate(this.things)
-    const groupFitness = this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
-    return groupFitness
+    // return this.groups.reduce((sum, g) => { return sum + g.avgError }, 0)
   }
-  // Re initializex the groups
-  reset() {
-    const forEachUpdate = (x) => { x.forEach((a) => { a.init() }) }
-    forEachUpdate(this.groups)
-  }
-  // Recursively calls function to enable dynamic FPS
-  loop() {
-    world.loops++
-    // Fade effect
-    world.context.globalAlpha = 0.25
-    world.context.fillStyle = '#f7f3d7'
-    world.context.fillRect(0, 0, world.width, world.height)
-    world.context.globalAlpha = 1
 
-    const error = world.update()
-    // if (world.loops % 20 === 0) {
-    //   console.log(error)
-    // }
-    setTimeout(world.loop, 1000 / world.fps)
+  // Re initialize the groups
+  reset() {
+    this.groups = []
+    for (let i = 0; i < this.groupNum; i++)
+      this.groups.push(new Group(this, 'Group' + i, this.groupSize))
+    const forEachInit = x => x.forEach(a => a.init())
+    forEachInit(this.groups)
   }
+
+  zero() {
+    this.separateWeight = 0
+    this.alignWeight = 0
+    this.cohesionWeight = 0
+  }
+
+  addGroup() {
+    this.groups.push(new Group(this, 'Group' + this.groupNum++, this.groupSize))
+  }
+
 }
