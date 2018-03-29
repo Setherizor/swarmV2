@@ -32,19 +32,13 @@ class Group {
   }
 
   update() {
-    let info = 0
-
     this.qtree = new QuadTree(boundary, 4);
     for (let c of this.creatures)
       this.qtree.insert(c.location);
 
-    this.creatures.forEach(function (creature, i, array) {
-      let targetXY = this.targetXY(creature)
-      let target = [targetXY.x, targetXY.y, this.targetAngle(creature)]
-      creature.moveTo(target, array)
-      creature.update()
-    }, this)
-    // Avg Error
-    this.avgError = (info / this.creatures.length)
+    this.creatures.forEach(c => {
+      c.flock()
+      c.update()
+    })
   }
 }

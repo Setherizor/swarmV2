@@ -9,7 +9,7 @@ class Entity {
     this.base = this.length * 0.5
     this.location = createVector(x, y)
     this.location.parent = this
-    this.velocity = createVector(0, 0)
+    this.velocity = p5.Vector.random2D()
     this.acceleration = createVector(0, 0)
     this.color = color
   }
@@ -18,8 +18,6 @@ class Entity {
     this.boundaries()
     this.velocity.add(this.acceleration)
     this.velocity.limit(this.maxspeed)
-    // Speed Normalization
-    // if (this.velocity.mag() < 1.5) { this.velocity.setMag(1.5) }
     this.location.add(this.velocity)
     this.acceleration.mult(0)
     this.draw()
@@ -45,18 +43,9 @@ class Entity {
     this.acceleration.add(force)
   }
 
-  applyVector(v) {
-    v.normalize()
-    v.mult(this.maxspeed)
-    v.sub(this.velocity)
-  }
-
   avgVec(values) {
     let sum = createVector(0, 0)
-    values.forEach((v) => {
-      if (v !== this)
-        sum.add(v)
-    })
+    values.forEach(v => sum.add(v))
     sum.div(values.length)
     return sum
   }
@@ -71,7 +60,7 @@ class Entity {
     let y3 = this.location.y + Math.sin(angle - (PI / 2)) * this.base
     fill(this.color)
     stroke(0, 0, 0)
-    strokeWeight(.5);
+    strokeWeight(.5)
     triangle(x1, y1, x2, y2, x3, y3)
   }
 }
@@ -80,88 +69,93 @@ class Creature extends Entity {
   constructor(world, x, y, group, color) {
     let mass = 1.5
     let maxspeed = 2
-    let maxforce = 0.2
+    let maxforce = 0.05
     super(world, mass, x, y, maxspeed, maxforce, color)
     this.group = group
-    this.velocity = p5.Vector.random2D()
   }
 
-  moveTo(output) {
-    let target = createVector(output[0] * this.world.width, output[1] * this.world.height)
-    let angle = output[2]
+  // Gets neighbor's locations from the quadtree
+  getNeighbors(range = this.world.viewRange) {
+    let bounds = new Circle(this.location.x, this.location.y, range)
+    let all = this.group.qtree.query(bounds)
+    return all.filter(l => p5.Vector.dist(this.location, l) != 0, this)
+  }
 
-    function setAngle(v, a) {
-      var mag = v.mag()
-      v.x = mag * Math.cos(a)
-      v.y = mag * Math.sin(a)
-      return v
-    }
-
+  flock() {
     let separation = this.separate()
-    let alignment = setAngle(this.align(), angle)
-    let cohesion = this.seek(target)
+    let alignment = this.align()
+    let cohesion = this.cohesion()
 
-
-    separation.limit(this.maxforce)
-    separation.mult(world.separateWeight);
-    // alignment.mult(1.0);
-    alignment.limit(world.alignWeight)
-    // cohesion.mult(1.0);
-    cohesion.limit(world.seekWeight)
+    separation.mult(world.separateWeight)
+    alignment.mult(world.alignWeight)
+    cohesion.mult(world.cohesionWeight)
 
     this.applyForce(separation)
     this.applyForce(alignment)
     this.applyForce(cohesion)
   }
 
-  seek(target) {
-    let seek = target.copy().sub(this.location)
-    this.applyVector(seek)
-    return seek
-  }
-
+  // Steers away from nearby neighbors
   separate() {
-    let sum = createVector(0, 0)
-    let range = new Circle(this.location.x, this.location.y, this.lookRange);
-    let neighboors = this.group.qtree.query(range);
-
+    let steer = createVector(0, 0)
+    let neighboors = this.getNeighbors(25)
     if (neighboors.length > 0) {
       let values = neighboors.map((c, i) => {
-        let diff = this.location.copy()
-        diff.sub(c)
+        let diff = p5.Vector.sub(this.location, (c))
         diff.normalize()
-        let dis = this.location.dist(c)
-        diff.div(dis)
+        diff.div(this.location.dist(c))
         return diff
       }, this)
-      sum = this.avgVec(values)
+      steer = this.avgVec(values)
     }
 
-    this.applyVector(sum)
-    // Pushes individual away from pack until they can turn around
-    return sum
+    // Implement Reynolds: Steering = Desired - Velocity
+    if (steer.mag() > 0) {
+      steer.normalize()
+      steer.mult(this.maxspeed)
+      steer.sub(this.velocity)
+      steer.limit(this.maxforce)
+    }
+    return steer
   }
 
   // Averages, and makes average velocity normal
   align() {
-    let avgVelocity = createVector(0, 0)
-    let range = new Circle(this.location.x, this.location.y, this.lookRange);
-    let neighboors = this.group.qtree.query(range);
-
+    let steer, avgVelocity
+    let neighboors = this.getNeighbors()
     if (neighboors.length > 0) {
       let velocities = neighboors.map((c) => { return c.parent.velocity })
       avgVelocity = this.avgVec(velocities)
-      this.applyVector(avgVelocity)
-      avgVelocity.limit(this.maxforce)
-    }
-    return avgVelocity
+      avgVelocity.normalize()
+      avgVelocity.mult(this.maxspeed)
+      steer = p5.Vector.sub(avgVelocity, this.velocity)
+      steer.limit(this.maxforce)
+      return steer
+    } else
+      return createVector(0, 0)
   }
 
   // Averages Location of neighbors
   cohesion() {
-    let range = new Circle(this.location.x, this.location.y, this.lookRange);
-    let points = this.group.qtree.query(range);
-    let locations = points.map((c) => { return c })
-    return this.avgVec(locations)
+    let neighboors = this.getNeighbors()
+    if (neighboors.length > 0)
+      return this.seek(this.avgVec(neighboors))
+    else
+      return createVector(0, 0)
+  }
+
+  groupco() {
+    let neighboors = this.group.creatures
+    var avg = (this.avgVec(neighboors.map(x => x.location)))
+    return avg
+  }
+
+  seek(target) {
+    let desired = p5.Vector.sub(target, this.location)
+    desired.normalize()
+    desired.mult(this.maxspeed)
+    let steer = p5.Vector.sub(desired, this.velocity)
+    steer.limit(this.maxforce)
+    return steer
   }
 }
